@@ -29,23 +29,28 @@ int main(int argc, char *argv[])
     #endif
 
     glViewport(0, 0, 1280, 720);
-    ShaderProgram program;
-    program.Load(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
-    //program.Load(RESOURCE_FOLDER"vertex.glsl", RESOURCE_FOLDER"fragment.glsl");
+    ShaderProgram program1;
+    ShaderProgram program2;
+    program1.Load(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
+    program2.Load(RESOURCE_FOLDER"vertex.glsl", RESOURCE_FOLDER"fragment.glsl");
     
     GLuint emojiTexture = LoadTexture(RESOURCE_FOLDER"emoji.png");
-    //GLuint pizzaTexture = LoadTexture(RESOURCE_FOLDER"pizza.png");
+    GLuint pizzaTexture = LoadTexture(RESOURCE_FOLDER"sterling_john.jpg");
+    GLuint duaneTexture = LoadTexture(RESOURCE_FOLDER"Duane.png");
     
     Matrix projectionMatrix;
     Matrix modelMatrix1;
-    //Matrix modelMatrix2;
-    //Matrix ModelMatrix3;
+    Matrix modelMatrix2;
+    Matrix modelMatrix3;
     Matrix viewMatrix;
     
     projectionMatrix.SetOrthoProjection(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
     
-    glUseProgram(program.programID);
-        
+    glUseProgram(program1.programID);
+    glUseProgram(program2.programID);
+    
+    modelMatrix2.Translate(1,1,0);
+    modelMatrix3.Translate(-2,1,0);
         
 
 	SDL_Event event;
@@ -58,37 +63,55 @@ int main(int argc, char *argv[])
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT);
-        program.SetModelMatrix(modelMatrix1);
-        //program.SetModelMatrix(modelMatrix2);
-        //program.SetModelMatrix(modelMatrix3);
-        program.SetProjectionMatrix(projectionMatrix);
-        program.SetViewMatrix(viewMatrix);
         
+        program1.SetModelMatrix(modelMatrix1);
         glBindTexture(GL_TEXTURE_2D, emojiTexture);
-        //glBindTexture(GL_TEXTURE_2D, pizzaTexture);
-        
         float vertices1[] = {-0.3f, -0.3f, 0.3f, -0.3f, 0.3f, 0.3f, -0.3f, -0.3f, 0.3f, 0.3f, -0.3f, 0.3f};
-        //float vertices2[] = {1.0f, -1.0f, 3.0f, -1.0f, 3.0f, 1.0f, 1.0f, 1.0f, 1.0f,-1.0f, 3.0f, 1.0f};
-        
-        glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices1);
-        //glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices2);
-        glEnableVertexAttribArray(program.positionAttribute);
-        
+        glVertexAttribPointer(program1.positionAttribute, 2, GL_FLOAT, false, 0, vertices1);
+        glEnableVertexAttribArray(program1.positionAttribute);
         float texture1[] = {0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
-        //float texture2[] = {1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
-        glVertexAttribPointer(program.texCoordAttribute, 2, GL_FLOAT, false, 0, texture1);
-        //glVertexAttribPointer(program.texCoordAttribute, 2, GL_FLOAT, false, 0, texture2);
-        glEnableVertexAttribArray(program.texCoordAttribute);
-        
-
+        glVertexAttribPointer(program1.texCoordAttribute, 2, GL_FLOAT, false, 0, texture1);
+        glEnableVertexAttribArray(program1.texCoordAttribute);
         modelMatrix1.Rotate(1.0f * (3.1415926f / 180.0f));
-
         
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
-        glDisableVertexAttribArray(program.positionAttribute);
-        glDisableVertexAttribArray(program.texCoordAttribute);
         
+        program1.SetModelMatrix(modelMatrix2);
+        glBindTexture(GL_TEXTURE_2D, pizzaTexture);
+        float vertices2[] = {-0.3f, -0.3f, 0.3f, -0.3f, 0.3f, 0.3f, -0.3f, -0.3f, 0.3f, 0.3f, -0.3f, 0.3f};
+        glVertexAttribPointer(program1.positionAttribute, 2, GL_FLOAT, false, 0, vertices2);
+        glEnableVertexAttribArray(program1.positionAttribute);
+        float texture2[] = {0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+        glVertexAttribPointer(program1.texCoordAttribute, 2, GL_FLOAT, false, 0, texture2);
+        glEnableVertexAttribArray(program1.texCoordAttribute);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+        
+        program1.SetModelMatrix(modelMatrix3);
+        glBindTexture(GL_TEXTURE_2D, duaneTexture);
+        float vertices3[] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
+        glVertexAttribPointer(program1.positionAttribute, 2, GL_FLOAT, false, 0, vertices3);
+        glEnableVertexAttribArray(program1.positionAttribute);
+        float texture3[] = {0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+        glVertexAttribPointer(program1.texCoordAttribute, 2, GL_FLOAT, false, 0, texture3);
+        glEnableVertexAttribArray(program1.texCoordAttribute);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 6);        
+
+        
+        
+        glDisableVertexAttribArray(program1.positionAttribute);
+        glDisableVertexAttribArray(program1.texCoordAttribute);
+        
+        
+        //program2.SetModelMatrix(modelMatrix3);
+        program1.SetProjectionMatrix(projectionMatrix);
+        program1.SetViewMatrix(viewMatrix);
+        
+        
+
         SDL_GL_SwapWindow(displayWindow);
 
 	}
