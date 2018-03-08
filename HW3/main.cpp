@@ -75,7 +75,7 @@ public:
 
 class Bullet{
     SheetSprite sprite;
-    float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
+    //float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
     Matrix model;
     Matrix view;
     Vector2 position;
@@ -124,7 +124,7 @@ public:
 
 class Invader{
     SheetSprite sprite;
-    float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
+    //float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
     float scale = 0.3f;
     Matrix model;
     Matrix view;
@@ -174,7 +174,7 @@ public:
 class Player{
     Vector2 position;
     SheetSprite sprite;
-    float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
+    //float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
     float scale = 0.3f;
     float speed = 10.0f;
     Matrix model;
@@ -192,9 +192,7 @@ public:
     std::vector<Bullet> lasers;
     
     Player(GLuint texture){
-        //sprite = SheetSprite(texture, 423.0f/1024.0f, 728.0f/1024.0f, 93.0f/1024.0f, 84.0f/1024.0f, 1.0f);
         sprite = SheetSprite(texture, 224.0f/1024.0f, 832.0f/1024.0f, 99.0f/1024.0f, 75.0f/1024.0f, 1.0f);
-        //playerShip1_red.png" x="224" y="832" width="99" height="75"
         position = Vector2(0.0f, -1.75f);
         top = (position.y + ( height * aspect));
         bot =  (position.y - (height * aspect));
@@ -298,22 +296,37 @@ public:
     }
 };
 
-class letters{
+class letter{
     SheetSprite sprite;
-    float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
+    //float vertices[12] = {-1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
     Matrix model;
     Matrix view;
     Vector2 position;
 public:
-    letters(GLuint texture,char character, Vector2 coords){
+    letter(GLuint texture,char character, Vector2 coords){
         //15x5
         int ascii = character%26;
-        float x;
-        float y;
-        float width;
-        float height;
         
-        sprite = SheetSprite(texture, 856.0f/1024.0f, 421.0f/1024.0f, 9.0f/1024.0f, 54.0f/1024.0f, 1.0f);
+        int index = ascii + 80;
+        int spriteCountX = 16;
+        int spriteCountY = 16;
+        float u = (float)(((int)index) % spriteCountX) / (float) spriteCountX;
+        float v = (float)(((int)index) / spriteCountX) / (float) spriteCountY;
+        float spriteWidth = 1.0/(float)spriteCountX;
+        float spriteHeight = 1.0/(float)spriteCountY;
+        GLfloat spriteUVs[] = { u, v,
+            u, v+spriteHeight,
+            u+spriteWidth, v+spriteHeight,
+            u+spriteWidth, v};
+        
+        sprite = SheetSprite(texture, u/512.0f, v/512.0f, spriteWidth/512.0f, spriteHeight/512.0f, 1.0f);
+    }
+    void Draw(ShaderProgram* program){
+        model.Identity();
+        model.Translate(position.x, position.y, 0.0f);
+        //model.Scale(scale, scale, 1.0f);
+        program->SetModelMatrix(model);
+        sprite.Draw(program);
     }
 };
 
@@ -396,7 +409,11 @@ class State{
             program.SetProjectionMatrix(projectionMatrix);
             SDL_Event event;
             bool Done = false;
-            //std::Vector<letters> text;
+            std::vector<letter> text;
+            char myText[] = "Start";
+            for(int i = 0; i < 5; i++){
+                text.push_back(letter(texture,myText[i], Vector2(-1.5f + i, 0.0f)));
+            }
             
             while(!Done){
                 while (SDL_PollEvent(&event)) {
@@ -410,7 +427,9 @@ class State{
             
                 glClear(GL_COLOR_BUFFER_BIT);
                 
-                
+                for(size_t i = 0; i < text.size(); i++){
+                    text[i].Draw(&program);
+                }
                 
                 glDisableVertexAttribArray(program.positionAttribute);
                 glDisableVertexAttribArray(program.texCoordAttribute);
