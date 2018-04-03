@@ -57,12 +57,13 @@ public:
     }
     
     bool isColliding(Vector2 coords){
-        //cout << pos.x << " " << pos.y << endl;
-        bool right = (pos.x + TILE_SIZE/2) >= (coords.x - TILE_SIZE/2);
-        bool top = (pos.y + TILE_SIZE/2) >= (coords.y - TILE_SIZE/2);
-        bool bottom = (pos.y - TILE_SIZE/2) <= (coords.y + TILE_SIZE/2);
-        bool left = (pos.x - TILE_SIZE/2) <= (coords.x + TILE_SIZE/2);
+        cout << pos.x << " " << pos.y << endl;
+        bool right = (pos.x + 0.5f) > (5* coords.x - 0.5f);
+        bool top = (pos.y + 0.5f) > (5* coords.y - 0.5f);
+        bool bottom = (pos.y - 0.5f) < (5* coords.y + 0.5f);
+        bool left = (pos.x - 0.5f) < (5* coords.x + 0.5f);
         return right && left && top && bottom;
+        //return false;
     }
 };
 
@@ -93,7 +94,7 @@ public:
     }
     void move(int direction, float elapsed){
         float tmp = (direction * velocity * elapsed) + pos.x;
-        //cout << pos.x << " " << pos.y << endl;
+        cout << pos.x * 5 << " " << pos.y * 5<< endl;
         for(int i = 0; i < colliders.size(); i++){
             if(colliders[i].isColliding(pos)){
                 return;
@@ -150,7 +151,7 @@ void buildColliders(){
     for(int y = 0; y < LEVEL_HEIGHT; y++){
         for(int x = 0; x < LEVEL_WIDTH; x++){
             if(map.mapData[y][x] != 0){
-                Collider tmp(x,y * (-1));
+                Collider tmp(x,y);
                 colliders.push_back(tmp);;
             }
         }
