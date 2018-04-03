@@ -57,13 +57,16 @@ public:
     }
     
     bool isColliding(Vector2 coords){
-        bool right = (pos.x + TILE_SIZE) >= (coords.x + TILE_SIZE);
-        bool top = (pos.y + TILE_SIZE) >= (coords.y + TILE_SIZE);
-        bool bottom = (pos.y - TILE_SIZE) <= (coords.y - TILE_SIZE);
-        bool left = (pos.x - TILE_SIZE) <= (coords.x - TILE_SIZE);
+        //cout << pos.x << " " << pos.y << endl;
+        bool right = (pos.x + TILE_SIZE/2) >= (coords.x - TILE_SIZE/2);
+        bool top = (pos.y + TILE_SIZE/2) >= (coords.y - TILE_SIZE/2);
+        bool bottom = (pos.y - TILE_SIZE/2) <= (coords.y + TILE_SIZE/2);
+        bool left = (pos.x - TILE_SIZE/2) <= (coords.x + TILE_SIZE/2);
         return right && left && top && bottom;
     }
 };
+
+vector<Collider> colliders;
 
 class Player{
     Vector2 pos;
@@ -73,12 +76,14 @@ class Player{
     Vector2 textureIndex;
     bool hasKey;
     int index = 80;
-    float velocity = 0.5;
+    float velocity = 2.0f;
+    GLuint textureID;
     
 public:
     Player(float xCoord, float yCoord){
         pos.x = xCoord;
         pos.y = yCoord;
+        textureID = LoadTexture("arne_sprites.png");
     }
     void jump(){
         if(isGrounded){
@@ -86,16 +91,23 @@ public:
             isGrounded = false;
         }
     }
-    void move(int direction){
-        pos.x += direction * velocity;
+    void move(int direction, float elapsed){
+        float tmp = (direction * velocity * elapsed) + pos.x;
+        //cout << pos.x << " " << pos.y << endl;
+        for(int i = 0; i < colliders.size(); i++){
+            if(colliders[i].isColliding(pos)){
+                return;
+            }
+        }
+        pos.x = tmp; 
     }
     void Draw(ShaderProgram* program){
         Model.Identity();
         Model.Translate(pos.x, pos.y + acceleration, 0.0f);
-        Model.Scale(TILE_SIZE, TILE_SIZE, 1.0f);
+        //Model.Scale(TILE_SIZE, TILE_SIZE, 1.0f);
         
         program->SetModelMatrix(Model);
-        
+        glBindTexture(GL_TEXTURE_2D, textureID);
         int x = 0;
         int y = 5;
         float u = (float)((index) % SPRITE_COUNT_X) / (float)SPRITE_COUNT_X;
@@ -131,15 +143,15 @@ public:
         
     }
 };
-vector<Collider> colliders;
-//Player* player;
+
+Player* player;
 
 void buildColliders(){
     for(int y = 0; y < LEVEL_HEIGHT; y++){
         for(int x = 0; x < LEVEL_WIDTH; x++){
-            if(levelData[y][x] != 0){
-                Collider tmp(x/TILE_SIZE, y/TILE_SIZE);
-                colliders.push_back(tmp);
+            if(map.mapData[y][x] != 0){
+                Collider tmp(x,y * (-1));
+                colliders.push_back(tmp);;
             }
         }
     }
@@ -149,7 +161,7 @@ void buildColliders(){
 //(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
 void placeEntity(string type, float placeX, float placeY){
     if(type == "Player"){
-        //player = new Player(placeX, placeY);
+        player = new Player(placeX, placeY * (-1));
     }
     else if(type == "Key"){
     }
@@ -245,12 +257,15 @@ int main(int argc, char *argv[])
     projectionMatrix.SetOrthoProjection(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
     view_matrix.Translate(-1.0f,2.0f,0.0f);
     glUseProgram(program.programID);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     
     map.Load("map_collision.txt");
 	for (int i = 0; i < map.entities.size(); i++) {
 		placeEntity(map.entities[i].type, map.entities[i].x * TILE_SIZE, map.entities[i].y * -TILE_SIZE);
     }
-
+    buildColliders();
     GLuint tiledTexture = LoadTexture("arne_sprites.png");
     
 	SDL_Event event;
@@ -264,10 +279,10 @@ int main(int argc, char *argv[])
 			}
             else if(event.type == SDL_KEYDOWN){
                 if(event.key.keysym.scancode == SDL_SCANCODE_A){
-                    //player->move(-1);
+                    player->move(-1, elapsed);
                 }
                 else if(event.key.keysym.scancode == SDL_SCANCODE_D){
-                    //player->move(1);
+                    player->move(1, elapsed);
                 }
                 else if(event.key.keysym.scancode == SDL_SCANCODE_SPACE){
                     //player->jump();
@@ -283,7 +298,7 @@ int main(int argc, char *argv[])
         lastFrameTicks = ticks;
         
         renderLevel(&program, tiledTexture);
-        //player->Draw(&program);
+        player->Draw(&program);
         
         
         glDisableVertexAttribArray(program.positionAttribute);
