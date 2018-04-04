@@ -61,10 +61,10 @@ public:
         bool right = pos.x - d < x + d;
         bool left = pos.x + d > x - d;
         bool top = pos.y + d > y - d;
-        bool bot = pos.y -d > y + d;
+        bool bot = pos.y -d < y + d;
         
         if(right && left && top && bot){
-            //std::cout <<"Collider " <<pos.x << " " << pos.y << std::endl;
+            std::cout <<"Collider " <<pos.x << " " << pos.y << std::endl;
             //std::cout << "Player "<< x << " " << y << std::endl;
             if(pos.x > x){//Shift left
                 x = pos.x - d - 0.01f;
@@ -105,7 +105,7 @@ public:
         pos.x = xCoord;
         pos.y = yCoord;
         textureID = LoadTexture("arne_sprites.png");
-        std::cout << pos.x << " " << pos.y << std::endl;
+        
     }
     void jump(){
         if(isGrounded){
@@ -114,9 +114,11 @@ public:
         }
     }
     void move(int direction, float elapsed){
+
         for(int i = 0; i < colliders.size(); i++){
             colliders[i].isColliding(&pos);
         }
+        std::cout << pos.x * 5 << " " << (pos.y +2.7)* 5 << std::endl;
         //if(tmp.x == pos.x){
         pos.x += velocity * elapsed * direction;
         //}
@@ -125,7 +127,7 @@ public:
     void movey(int direction, float elapsed){
     
         pos.y += velocity * direction * elapsed;
-        std::cout << pos.x << " " << pos.y << std::endl;
+        //std::cout << pos.x << " " << pos.y << std::endl;
     }
     void Draw(ShaderProgram* program){
         Model.Identity();
