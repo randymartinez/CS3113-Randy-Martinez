@@ -48,23 +48,43 @@ struct Vector2{
     float y;
 };
 class Collider{
-protected:
-    Vector2 pos;
 public:
     Collider(float x, float y) {
         pos.x = x;
         pos.y = y;
     }
     
-    bool isColliding(Vector2 coords){
-        cout << pos.x << " " << pos.y << endl;
-        bool right = (pos.x + 0.5f) > (5* coords.x - 0.5f);
-        bool top = (pos.y + 0.5f) > (5* coords.y - 0.5f);
-        bool bottom = (pos.y - 0.5f) < (5* coords.y + 0.5f);
-        bool left = (pos.x - 0.5f) < (5* coords.x + 0.5f);
-        return right && left && top && bottom;
-        //return false;
+    void isColliding(Vector2* p){
+        float x = p->x * toTile;
+        float y = (p->y + 2.2f + d) * toTile * -1;
+        
+        bool right = pos.x - d < x + d;
+        bool left = pos.x + d > x - d;
+        bool top = pos.y + d > y - d;
+        bool bot = pos.y -d > y + d;
+        
+        if(right && left && top && bot){
+            //std::cout <<"Collider " <<pos.x << " " << pos.y << std::endl;
+            //std::cout << "Player "<< x << " " << y << std::endl;
+            if(pos.x > x){//Shift left
+                x = pos.x - d - 0.01f;
+            }
+            else{//Shift right
+                x = pos.x + d + 0.01f;
+            }
+            if(pos.y > y){//Shift down
+                y = (pos.y - d - 0.01f) * -1.0f;
+            }
+            else{//shift up
+                y = (pos.y + d + 0.01f) * -1.0f;
+            }
+        }
+        p->x = x * TILE_SIZE;
+        p->y = (y * TILE_SIZE * -1) - 2.2f - d;
     }
+    Vector2 pos;
+    float d = 0.5f;
+    int toTile = 5;
 };
 
 vector<Collider> colliders;
@@ -85,6 +105,7 @@ public:
         pos.x = xCoord;
         pos.y = yCoord;
         textureID = LoadTexture("arne_sprites.png");
+        std::cout << pos.x << " " << pos.y << std::endl;
     }
     void jump(){
         if(isGrounded){
@@ -93,18 +114,22 @@ public:
         }
     }
     void move(int direction, float elapsed){
-        float tmp = (direction * velocity * elapsed) + pos.x;
-        cout << pos.x * 5 << " " << pos.y * 5<< endl;
         for(int i = 0; i < colliders.size(); i++){
-            if(colliders[i].isColliding(pos)){
-                return;
-            }
+            colliders[i].isColliding(&pos);
         }
-        pos.x = tmp; 
+        //if(tmp.x == pos.x){
+        pos.x += velocity * elapsed * direction;
+        //}
+        std::cout << pos.x << " " << pos.y << std::endl;
+    }
+    void movey(int direction, float elapsed){
+    
+        pos.y += velocity * direction * elapsed;
+        std::cout << pos.x << " " << pos.y << std::endl;
     }
     void Draw(ShaderProgram* program){
         Model.Identity();
-        Model.Translate(pos.x, pos.y + acceleration, 0.0f);
+        Model.Translate(pos.x, pos.y-1, 0.0f);
         //Model.Scale(TILE_SIZE, TILE_SIZE, 1.0f);
         
         program->SetModelMatrix(Model);
@@ -245,7 +270,7 @@ int main(int argc, char *argv[])
     #endif
 
     glViewport(0, 0, 640, 360);
-    
+    //view_matrix.Scale(0.5f, 0.5f, 1.0f);
     ShaderProgram program;
     program.Load(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
     //program.Load(RESOURCE_FOLDER"vertex.glsl", RESOURCE_FOLDER"fragment.glsl");
@@ -285,9 +310,15 @@ int main(int argc, char *argv[])
                 else if(event.key.keysym.scancode == SDL_SCANCODE_D){
                     player->move(1, elapsed);
                 }
-                else if(event.key.keysym.scancode == SDL_SCANCODE_SPACE){
+                else if(event.key.keysym.scancode == SDL_SCANCODE_W){
                     //player->jump();
+                    player->movey(1,elapsed);
                 }
+                else if(event.key.keysym.scancode == SDL_SCANCODE_S){
+                    //player->jump();
+                    player->movey(-1,elapsed);
+                }
+                
                 
             }
 		}
