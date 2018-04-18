@@ -269,6 +269,8 @@ int main(int argc, char *argv[])
         SDL_GL_SwapWindow(displayWindow);
 
 	}
+	Mix_FreeChunk(bump);
+    Mix_FreeChunk(score);
     Mix_FreeMusic(music);
 	SDL_Quit();
 	return 0;
