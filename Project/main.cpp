@@ -150,7 +150,9 @@ public:
     Vector2 pos;
     Vector2 prevPos;
     bool isPlayer;
+    Mix_Chunk *bump;
     Entity(int x, int y, bool isP){
+        bump = Mix_LoadWAV("bump.wav");
         isPlayer = isP;
         int spritey = 279;
         if(isPlayer)
@@ -175,7 +177,9 @@ public:
 
 
     }
-
+    float xScale = scale;
+    float yScale = scale;
+    
     void search(){
         int prevX = pos.x;
         int prevY = pos.y;
@@ -215,6 +219,7 @@ public:
 
             prevX = x;
             prevY = y;
+            Mix_PlayChannel(-1, bump, 0);
         }
         AP = 0;
 
@@ -256,6 +261,7 @@ public:
                 
                 layers[2][y][x] = 0;
                 layers[1][y][x] = 0;
+                Mix_PlayChannel(-1, bump, 0);
             }
             return true;
         }
@@ -344,6 +350,7 @@ public:
             pos.x = x;
             pos.y = y;
             AP--;
+            Mix_PlayChannel(-1, bump, 0);
             //obj_id = layers[2][y][x];
             //wall_id = layers[1][y][x];
             
@@ -361,18 +368,21 @@ public:
             
             float rotx = ((pos.x - pos.y)/4.0f) + 0.275f;
             float roty = ((pos.x + pos.y)/-7.0f) -0.75;
-            
-            /*float prevRotx = ((prevPos.x - prevPos.y)/4.0f) + 0.275f;
+            float prevRotx = ((prevPos.x - prevPos.y)/4.0f) + 0.275f;
             float prevRoty = ((prevPos.x + prevPos.y)/-7.0f) -0.75;
             
-            int tmpx = lerp(rotx, 0.0f, elapsed);
-            int tmpy = lerp(roty, 0.0f, elapsed);*/
+            //prevRotx += lerp(rotx, prevPos.x, elapsed);
+            //prevRoty += (roty, prevPos.y, elapsed);
+            
+            xScale = lerp(xScale, xScale/2, 20*elapsed);
+            yScale = lerp(yScale, yScale/2, 20*elapsed);
             
             model.Translate(rotx , roty, 0.0f);
             if(flip_pose)
-                model.Scale(-scale, scale, 1.0f);
+                model.Scale(-xScale, yScale, 1.0f);
             else
-                model.Scale(scale, scale, 1.0f);
+                model.Scale(xScale, yScale, 1.0f);
+            xScale = yScale = scale;
             program.SetModelMatrix(model);
             sprite.Draw();
         }
@@ -520,9 +530,6 @@ void game(){
     Mix_Music *music;
     music = Mix_LoadMUS("Desert Nomads.wav");
     Mix_PlayMusic(music, -1);
-    
-    //Mix_Chunk *bump;
-    //bump = Mix_LoadWAV("bump.wav");
     
     //Mix_Chunk *score;
     //score = Mix_LoadWAV("score.wav");
