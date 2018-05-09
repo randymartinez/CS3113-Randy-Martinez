@@ -443,14 +443,14 @@ class State{
 int main(int argc, char *argv[])
 {
 	SDL_Init(SDL_INIT_VIDEO);
-	displayWindow = SDL_CreateWindow("My Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL);
+	displayWindow = SDL_CreateWindow("My Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_OPENGL);
 	SDL_GLContext context = SDL_GL_CreateContext(displayWindow);
 	SDL_GL_MakeCurrent(displayWindow, context);
     #if defined(_WINDOWS) || (LINUX)
         glewInit();
     #endif
 
-    glViewport(0, 0, 1280, 720);    
+    glViewport(0, 0, 800, 800);    
     State gameState;
     
     gameState.Menu();

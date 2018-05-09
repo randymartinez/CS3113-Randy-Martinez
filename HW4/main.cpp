@@ -40,6 +40,7 @@ void buildColliders();
 Matrix model_matrix;
 Matrix view_matrix;
 FlareMap map;
+GLuint textureID;
 
 SDL_Window* displayWindow;
 
@@ -56,15 +57,22 @@ public:
     
     void isColliding(Vector2* p){
         float x = p->x * toTile;
-        float y = (p->y + 2.2f + d) * toTile * -1;
+        float y = ((p->y + 2.2f + d) * toTile * -1);
         
         bool right = pos.x - d < x + d;
         bool left = pos.x + d > x - d;
-        bool top = pos.y + d > y - d;
-        bool bot = pos.y -d < y + d;
+        bool top = pos.y - d < y + d;
+        bool bot = pos.y + d > y - d;
         
-        if(right && left && top && bot){
+        if((pos.x == 17 || pos.x == 18) && (pos.y >= 5 && pos.y <= 7)){
+            std::cout << right << left << top << bot << std::endl;
             std::cout <<"Collider " <<pos.x << " " << pos.y << std::endl;
+            std::cout <<"Tile x:"<< x <<"Tile y:" << y << std::endl;
+        }
+        //y -= ((y + d) - (pos.y -d) + 0.01f);
+        //if((right && left) && (top && bot)){
+        if((right || left) && (top && bot)){
+            
             //std::cout << "Player "<< x << " " << y << std::endl;
             if(pos.x > x){//Shift left
                 x = pos.x - d - 0.01f;
@@ -80,10 +88,10 @@ public:
             }
         }
         p->x = x * TILE_SIZE;
-        p->y = (y * TILE_SIZE * -1) - 2.2f - d;
+        p->y = ((y) * TILE_SIZE * -1) - 2.2f - d;
     }
     Vector2 pos;
-    float d = 0.5f;
+    float d = TILE_SIZE/2;
     int toTile = 5;
 };
 
@@ -98,13 +106,11 @@ class Player{
     bool hasKey;
     int index = 80;
     float velocity = 2.0f;
-    GLuint textureID;
     
 public:
     Player(float xCoord, float yCoord){
         pos.x = xCoord;
         pos.y = yCoord;
-        textureID = LoadTexture("arne_sprites.png");
         
     }
     void jump(){
@@ -118,11 +124,10 @@ public:
         for(int i = 0; i < colliders.size(); i++){
             colliders[i].isColliding(&pos);
         }
-        std::cout << pos.x * 5 << " " << (pos.y +2.7)* 5 << std::endl;
-        //if(tmp.x == pos.x){
+
         pos.x += velocity * elapsed * direction;
-        //}
-        std::cout << pos.x << " " << pos.y << std::endl;
+
+        std::cout << pos.x * 5 << " " << (pos.y + 2.7) * 5 << std::endl;
     }
     void movey(int direction, float elapsed){
     
@@ -136,8 +141,8 @@ public:
         
         program->SetModelMatrix(Model);
         glBindTexture(GL_TEXTURE_2D, textureID);
-        int x = 0;
-        int y = 5;
+        int x = 1;
+        int y = 1;
         float u = (float)((index) % SPRITE_COUNT_X) / (float)SPRITE_COUNT_X;
         float v = (float)((index) / SPRITE_COUNT_X) / (float)SPRITE_COUNT_Y;
         float spriteWidth = 1.0f / (float)SPRITE_COUNT_X;
@@ -172,7 +177,66 @@ public:
     }
 };
 
+class Key{
+    Vector2 pos;
+    Matrix Model;
+    Vector2 textureIndex;
+    int index = 86;
+    
+public:
+    Key(float xCoord, float yCoord){
+        pos.x = xCoord;
+        pos.y = yCoord;
+        //textureID = LoadTexture("arne_sprites.png");
+        
+    }
+    void Draw(ShaderProgram* program){
+        Model.Identity();
+        Model.Translate(pos.x, pos.y-1, 0.0f);
+        //Model.Scale(TILE_SIZE, TILE_SIZE, 1.0f);
+        
+        program->SetModelMatrix(Model);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        int x = 1;
+        int y = 1;
+        float u = (float)((index) % SPRITE_COUNT_X) / (float)SPRITE_COUNT_X;
+        float v = (float)((index) / SPRITE_COUNT_X) / (float)SPRITE_COUNT_Y;
+        float spriteWidth = 1.0f / (float)SPRITE_COUNT_X;
+        float spriteHeight = 1.0f / (float)SPRITE_COUNT_Y;
+        
+        float vertices[] = {
+            TILE_SIZE * x, -TILE_SIZE * y,
+            TILE_SIZE * x, (-TILE_SIZE * y) - TILE_SIZE,
+            (TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
+            TILE_SIZE * x, -TILE_SIZE * y,
+            (TILE_SIZE * x) + TILE_SIZE, (-TILE_SIZE * y) - TILE_SIZE,
+            (TILE_SIZE * x) + TILE_SIZE, -TILE_SIZE * y
+            };
+        float texCoords[] = {
+            u, v,
+            u, v + (spriteHeight),
+            u + spriteWidth, v + (spriteHeight),
+            u, v,
+            u + spriteWidth, v + (spriteHeight),
+            u + spriteWidth, v
+            };
+        
+        
+        glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+        glEnableVertexAttribArray(program->positionAttribute);
+        
+        glVertexAttribPointer(program->texCoordAttribute, 2, GL_FLOAT, false, 0, texCoords);
+        glEnableVertexAttribArray(program->texCoordAttribute);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+    }
+};
+
+
+
 Player* player;
+Key* key;
 
 void buildColliders(){
     for(int y = 0; y < LEVEL_HEIGHT; y++){
@@ -192,6 +256,8 @@ void placeEntity(string type, float placeX, float placeY){
         player = new Player(placeX, placeY * (-1));
     }
     else if(type == "Key"){
+        key = new Key(placeX, placeY * (-1));
+        cout << placeX << placeY << endl;
     }
 }
 
@@ -284,6 +350,7 @@ int main(int argc, char *argv[])
     
     projectionMatrix.SetOrthoProjection(-3.55, 3.55, -2.0f, 2.0f, -1.0f, 1.0f);
     view_matrix.Translate(-1.0f,2.0f,0.0f);
+    view_matrix.Scale(0.5f, 0.5f, 1.0f);
     glUseProgram(program.programID);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -294,7 +361,8 @@ int main(int argc, char *argv[])
 		placeEntity(map.entities[i].type, map.entities[i].x * TILE_SIZE, map.entities[i].y * -TILE_SIZE);
     }
     buildColliders();
-    GLuint tiledTexture = LoadTexture("arne_sprites.png");
+    //GLuint tiledTexture = LoadTexture("arne_sprites.png");
+    textureID = LoadTexture("arne_sprites.png");
     
 	SDL_Event event;
 	bool done = false;
@@ -331,9 +399,10 @@ int main(int argc, char *argv[])
         elapsed = ticks - lastFrameTicks;
         lastFrameTicks = ticks;
         
-        renderLevel(&program, tiledTexture);
-        player->Draw(&program);
+        renderLevel(&program, textureID);
         
+        player->Draw(&program);
+        key->Draw(&program);
         
         glDisableVertexAttribArray(program.positionAttribute);
         program.SetProjectionMatrix(projectionMatrix);

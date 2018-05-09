@@ -38,7 +38,6 @@ type=Player
 location=17,5,1,1
 
 [Key]
-# Key
 type=Key
 location=14,18,1,1
 
